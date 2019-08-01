@@ -2,6 +2,8 @@ package com.example.myapplication;
 
 
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,11 +20,11 @@ import java.util.List;
 public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapter.ViewHolder>{
 
     private List<BluetoothDevice> mLeDeviceList;
-    //private List<String> mTestList;
+
+
     public leDeviceListAdapter(){
         super();
         mLeDeviceList = new ArrayList<BluetoothDevice>();
-        //mTestList = new ArrayList<String>();
     }
 
     public leDeviceListAdapter(List<BluetoothDevice> mLeDeviceList){
@@ -33,9 +35,7 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
         if(!mLeDeviceList.contains(device))
             mLeDeviceList.add(device);
     }
-    /*public void addTest(String device){
-        mTestList.add(device);
-    }*/
+
     @Override
     public long getItemId(int position) {
         return super.getItemId(position);
@@ -78,10 +78,20 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
 
         @Override
         public void onClick(View v) {
-            //按下後執行的程式碼
+            /**按下後執行的程式碼*/
             if(mLeDeviceList.size() != 0)
             {Toast.makeText(v.getContext(), mLeDeviceList.get(getAdapterPosition()).getName()+"\n"+
                     mLeDeviceList.get(getAdapterPosition()).getAddress(), Toast.LENGTH_LONG).show();}
+            if(mLeDeviceList.get(getAdapterPosition()).getName().equals("HMSoft")){
+
+                final BluetoothDevice device = mLeDeviceList.get(getAdapterPosition());
+                if (device == null) return;
+                Intent it = new Intent(MainActivity.SELECT_BLE_DEVICE);
+                it.putExtra(MainActivity.EXTRAS_DEVICE_NAME, device.getName());
+                it.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                //範例這有讓掃描停止，之後再看需不需要
+                v.getContext().sendBroadcast(it);
+            }
         }
     }
 }

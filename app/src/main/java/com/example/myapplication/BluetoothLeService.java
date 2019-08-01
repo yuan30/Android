@@ -65,8 +65,8 @@ public class BluetoothLeService extends Service {
 
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-
-        Toast.makeText(this, mBluetoothAdapter.getName(), Toast.LENGTH_LONG).show();
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(mBluetoothAdapter.getAddress());
+        Toast.makeText(this, device.getName(), Toast.LENGTH_LONG).show();
         super.onCreate();
     }
 

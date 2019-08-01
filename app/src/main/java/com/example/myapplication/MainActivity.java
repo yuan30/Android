@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -11,9 +12,11 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -30,12 +33,17 @@ public class MainActivity extends AppCompatActivity {
     private leDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
+
     private Button mBtn_on, mBtn_off, mBtn_startService;
     private TextView mTxtView;
     private RecyclerView mRecyclerView;
     private Handler mHandler;
     private boolean mScanning;
+    private String mBluetoothLEDeviceName, mBluetoothLEDeviceAddress;
 
+    public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
+    public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
+    public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     private static final long SCAN_PERIOD = 3000;
     private static final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
 
@@ -50,6 +58,24 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
 
+        }
+    };
+
+    private BroadcastReceiver mGattChangeData = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
+
+    private BroadcastReceiver mBluetoothDevice_select = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mBluetoothLEDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+            mBluetoothLEDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+            mTxtView = (TextView) findViewById(R.id.txtViewN);
+            mTxtView.setText(mBluetoothLEDeviceName + "\n" + mBluetoothLEDeviceAddress);
+            leDeviceOnSelect();
         }
     };
 
@@ -76,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
                         REQUEST_CODE_ACCESS_COARSE_LOCATION);
             }
         }
+
+        registerReceiver(mBluetoothDevice_select, new IntentFilter(SELECT_BLE_DEVICE) );//選到裝置後的廣播
 
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
@@ -121,12 +149,18 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener Btn_startServiceOnClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
+            /*Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
             //startService(it);
             bindService(it, mServiceConnection, BIND_AUTO_CREATE);
-            //mTxtView.setText(mBluetoothAdapter.getName());
+            //mTxtView.setText(mBluetoothAdapter.getName());*/
+            Toast.makeText(MainActivity.this, "Test", Toast.LENGTH_SHORT).show();
         }
     };
+
+    public void leDeviceOnSelect(){
+        Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
+        bindService(it, mServiceConnection, BIND_AUTO_CREATE);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -155,12 +189,8 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
                 }
             }, SCAN_PERIOD);
-            //Toast.makeText(MainActivity.this, "scan", Toast.LENGTH_SHORT).show();
             mScanning = true;
             mBluetoothAdapter.startLeScan(mleScanCallback);
-
-            //mLeDeviceListAdapter.addTest("Test3");
-            //mLeDeviceListAdapter.addTest("Test4");
 
         } else {
             mScanning = false;
