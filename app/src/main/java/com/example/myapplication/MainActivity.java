@@ -33,13 +33,14 @@ public class MainActivity extends AppCompatActivity {
     private leDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeService mBluetoothLeService;
 
-    private Button mBtn_on, mBtn_off, mBtn_startService;
+    private Button mBtn_on, mBtn_off, mBtn_stopService;
     private TextView mTxtView;
     private RecyclerView mRecyclerView;
     private Handler mHandler;
     private boolean mScanning;
-    private String mBluetoothLEDeviceName, mBluetoothLEDeviceAddress;
+    private String mBLE_DeviceName, mBLE_DeviceAddress;
 
     public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -47,12 +48,18 @@ public class MainActivity extends AppCompatActivity {
     private static final long SCAN_PERIOD = 3000;
     private static final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
 
-    private BluetoothLeService mBluetoothLeService = new BluetoothLeService() ;
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_LONG).show();
+            //Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_LONG).show();
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) iBinder).getService();
+            if (!mBluetoothLeService.initialize()) {
+                //Log.d(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            if(mBluetoothLeService.connect(mBLE_DeviceAddress) )
+                Toast.makeText(MainActivity.this, "Device connect", Toast.LENGTH_LONG).show();
+
         }
 
         @Override
@@ -61,21 +68,24 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private BroadcastReceiver mGattChangeData = new BroadcastReceiver() {
+    private BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
 
         }
     };
 
-    private BroadcastReceiver mBluetoothDevice_select = new BroadcastReceiver() {
+    private BroadcastReceiver mBluetoothDeviceSelectReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mBluetoothLEDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-            mBluetoothLEDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+            mBLE_DeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+            mBLE_DeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
             mTxtView = (TextView) findViewById(R.id.txtViewN);
-            mTxtView.setText(mBluetoothLEDeviceName + "\n" + mBluetoothLEDeviceAddress);
-            leDeviceOnSelect();
+            mTxtView.setText(mBLE_DeviceName + "\n" + mBLE_DeviceAddress);
+            if(mBluetoothLeService == null){
+                leDeviceOnSelect();
+            }
         }
     };
 
@@ -94,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 //判断是否需要向用户解释为什么需要申请该权限
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                  Toast.makeText(this, "自Android 6.0开始需要打开位置权限才可以搜索到Ble设备", Toast.LENGTH_LONG);
+                    Toast.makeText(this, "自Android 6.0开始需要打开位置权限才可以搜索到Ble设备", Toast.LENGTH_LONG).show();
                 }
                 //请求权限
                 ActivityCompat.requestPermissions(this,
@@ -103,20 +113,17 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        registerReceiver(mBluetoothDevice_select, new IntentFilter(SELECT_BLE_DEVICE) );//選到裝置後的廣播
+        registerReceiver(mBluetoothDeviceSelectReceiver, new IntentFilter(SELECT_BLE_DEVICE) );//選到裝置後的廣播
 
         mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-        /*if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "此裝置不支援BLE", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }*/
+        mBluetoothLeService = null;
+
         mHandler = new Handler();
 
         mBtn_on = (Button) findViewById(R.id.Btn_on);
         mBtn_off = (Button) findViewById(R.id.Btn_off);
-        mBtn_startService = (Button) findViewById(R.id.Btn_startService);
+        mBtn_stopService = (Button) findViewById(R.id.Btn_stopService);
 
         mLeDeviceListAdapter = new leDeviceListAdapter();
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -124,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
         mBtn_on.setOnClickListener(Btn_onOnClick);
         mBtn_off.setOnClickListener(Btn_offOnClick);
-        mBtn_startService.setOnClickListener(Btn_startServiceOnClick);
+        mBtn_stopService.setOnClickListener(Btn_stopServiceOnClick);
     }
 
     private View.OnClickListener Btn_onOnClick = new View.OnClickListener() {
@@ -146,20 +153,23 @@ public class MainActivity extends AppCompatActivity {
             scanLeDevice(false);
         }
     };
-    private View.OnClickListener Btn_startServiceOnClick = new View.OnClickListener() {
+    private View.OnClickListener Btn_stopServiceOnClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            /*Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
-            //startService(it);
-            bindService(it, mServiceConnection, BIND_AUTO_CREATE);
-            //mTxtView.setText(mBluetoothAdapter.getName());*/
-            Toast.makeText(MainActivity.this, "Test", Toast.LENGTH_SHORT).show();
+            if(mBluetoothLeService != null) {
+                mBluetoothLeService = null;
+                unbindService(mServiceConnection);
+                Toast.makeText(MainActivity.this, "stop service", Toast.LENGTH_SHORT).show();
+            }
         }
     };
 
     public void leDeviceOnSelect(){
+        mBluetoothLeService = null;
         Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
         bindService(it, mServiceConnection, BIND_AUTO_CREATE);
+
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
     }
 
     @Override
@@ -189,6 +199,8 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
                 }
             }, SCAN_PERIOD);
+            Toast.makeText(MainActivity.this, "Start Scan", Toast.LENGTH_LONG).show();
+
             mScanning = true;
             mBluetoothAdapter.startLeScan(mleScanCallback);
 
@@ -212,4 +224,13 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     };
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
+    }
 }

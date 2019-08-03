@@ -24,10 +24,10 @@
         android:textSize="20sp" />
 
     <Button
-        android:id="@+id/Btn_startService"
+        android:id="@+id/Btn_stopService"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="StartService"
+        android:text="StopService"
         android:textAllCaps="false"
         android:textSize="20sp" />
 
