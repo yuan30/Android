@@ -71,8 +71,12 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String mAction = intent.getAction();
+            if(mAction.equals(mBluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)){
 
+            }else if(mAction.equals(mBluetoothLeService.ACTION_DATA_AVAILABLE)){
 
+            }
         }
     };
 

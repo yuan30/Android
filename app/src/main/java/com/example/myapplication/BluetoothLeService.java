@@ -58,10 +58,6 @@ public class BluetoothLeService extends Service {
     } LocalBinder mLocalBin = new LocalBinder();
     @Override
     public void onCreate() {
-
-//        mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-//        mBluetoothAdapter = mBluetoothManager.getAdapter();
-//        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(mBluetoothAdapter.getAddress());
         super.onCreate();
     }
 
@@ -121,10 +117,10 @@ public class BluetoothLeService extends Service {
         if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
-        } Toast.makeText(this, device.getName()+" dd", Toast.LENGTH_LONG).show();
+        } //Toast.makeText(this, device.getName()+" dd", Toast.LENGTH_LONG).show();
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        //拿到裝置後，Gatt也建立成功，應該是會跳進mGattCallback
+        //拿到裝置後，Gatt也建立成功，應該是會跳進mGattCallback.onConnectionStateChange
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         Log.d(TAG, "Trying to create a new connection.");
         mBLE_DeviceAddress = address;
@@ -144,28 +140,32 @@ public class BluetoothLeService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status,
                                             int newState) { //notification對應
-            String intentAction;
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                intentAction = ACTION_GATT_CONNECTED;
-                mConnectionState = STATE_CONNECTED;
-                //broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
-                Log.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
-
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                intentAction = ACTION_GATT_DISCONNECTED;
-                mConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "Disconnected from GATT server.");
-                //broadcastUpdate(intentAction);
+            //String intentAction;
+            if(status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    //intentAction = ACTION_GATT_CONNECTED;
+                    mConnectionState = STATE_CONNECTED;
+                    //broadcastUpdate(intentAction); //為了在畫面上顯示連線
+                    Log.i(TAG, "Connected to GATT server.");
+                    //Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                    mBluetoothGatt.discoverServices();
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    //intentAction = ACTION_GATT_DISCONNECTED;
+                    mConnectionState = STATE_DISCONNECTED;
+                    Log.i(TAG, "Disconnected from GATT server.");
+                    gatt.close();//斷開連線也釋放
+                    //broadcastUpdate(intentAction); //為了在畫面上顯示斷開
+                }
             }
         }
 
         @Override
         // New services discovered
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {//discoverServices對應
-                //broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+            if (status == BluetoothGatt.GATT_SUCCESS) {//Gatt.discoverServices對應
+                Toast.makeText(BluetoothLeService.this, "可以通訊", Toast.LENGTH_LONG).show();
+                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+                Log.w(TAG, "onServicesDiscovered yeah: " + status);
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
@@ -175,10 +175,20 @@ public class BluetoothLeService extends Service {
         // Result of a characteristic read operation
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
-                                         int status) { //readCharacteristic對
+                                         int status) { //Gatt.readCharacteristic對應
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 //broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
         }
     };
+
+    private void broadcastUpdate(final String action) {
+        final Intent intent = new Intent(action);
+        sendBroadcast(intent);
+    }
+
+    /*private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
+        final Intent intent = new Intent(action);
+        sendBroadcast(intent);
+    }*/
 }
