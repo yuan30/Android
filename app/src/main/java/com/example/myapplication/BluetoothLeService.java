@@ -4,6 +4,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -17,6 +18,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.List;
 import java.util.UUID;
 
 public class BluetoothLeService extends Service {
@@ -71,6 +73,7 @@ public class BluetoothLeService extends Service {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
+        mBluetoothGatt.disconnect();
         close();
         return super.onUnbind(intent);
     }
@@ -135,6 +138,18 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.close();
         mBluetoothGatt = null;
     }
+
+    public void onCharacteristicRead(BluetoothGattCharacteristic characteristic){
+        if(mBluetoothAdapter == null || mBluetoothGatt == null){
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(characteristic);
+    }
+
+    public void onCharacteristicWrite(BluetoothGattCharacteristic characteristic){
+
+    }
+
     // Various callback methods defined by the BLE API.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
@@ -163,10 +178,11 @@ public class BluetoothLeService extends Service {
         // New services discovered
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {//Gatt.discoverServices對應
-                Toast.makeText(BluetoothLeService.this, "可以通訊", Toast.LENGTH_LONG).show();
+                //Toast.makeText(BluetoothLeService.this, "可以通訊", Toast.LENGTH_).show();
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
                 Log.w(TAG, "onServicesDiscovered yeah: " + status);
             } else {
+                //Toast.makeText(this, "還不能通訊", Toast.LENGTH_LONG).show();
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
         }
@@ -191,4 +207,8 @@ public class BluetoothLeService extends Service {
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }*/
+
+    public List<BluetoothGattService> gattServices() {
+        return mBluetoothGatt.getServices();
+    }
 }
