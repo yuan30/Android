@@ -29,10 +29,15 @@ import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ExpandableListView;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,10 +46,13 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeService mBluetoothLeService;
     private BluetoothGattService mGattService;
-    private BluetoothGattCharacteristic mGattCharacteristicRead, mGattCharacteristicWrite,
-                                        mGattCharacteristicNotify;
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    /*private BluetoothGattCharacteristic mGattCharacteristicRead, mGattCharacteristicWrite,
+                                        mGattCharacteristicNotify;*/
 
     private ExpandableListView mExpandableListView_gatt_services;
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
+            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
     private Button mBtn_on, mBtn_off, mBtn_stopService;
     private TextView mTxtViewN, mTxtViewB;
     private RecyclerView mRecyclerView;
@@ -226,26 +234,41 @@ public class MainActivity extends AppCompatActivity {
         List<BluetoothGattService> gattServices = mBluetoothLeService.gattServices();
         String allOfTerm = "";
         int i=0;
+        ArrayList<Map<String,Object>> gattServiceData = new ArrayList<Map<String,Object>>();
+        ArrayList<ArrayList<Map<String, Object>>> gattCharacteristicData = new ArrayList<ArrayList<Map<String, Object>>>();
+        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
         for(BluetoothGattService gattService : gattServices){
-            allOfTerm = allOfTerm + "Unknow Service :"+(i)+"\n";
+            //allOfTerm = allOfTerm + "Unknow Service :"+(i)+"\n";
+            Map<String,Object> groupMap = new HashMap<String,Object>();
+            groupMap.put("title", "Unknown Service :"+ i);
+            groupMap.put("uuid", gattService.getUuid().toString());
             if(i == 0){
                  mGattService = gattService;
             }
+            gattServiceData.add(groupMap);
 
+            ArrayList<Map<String, Object>>  gattCharacteristicGroupData =
+                    new ArrayList<Map<String, Object>>();
             List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+            ArrayList<BluetoothGattCharacteristic> gattCharas =
+                    new ArrayList<BluetoothGattCharacteristic>();
+
             for(BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics){
                 int charaProp = gattCharacteristic.getProperties();
+                gattCharas.add(gattCharacteristic);
+                HashMap<String, Object> currentCharaData = new HashMap<String, Object>();
+                //currentCharaData.put("title", SampleGattAttributes.lookup(gattCharacteristic.getUuid().toString(), "Test"));
+                currentCharaData.put("uuid", gattCharacteristic.getUuid().toString());
 
-                //allOfTerm = allOfTerm + SampleGattAttributes.lookup(gattCharacteristic.getUuid().toString(), "Test")+" ";
-                allOfTerm = allOfTerm + (gattCharacteristic.getUuid().toString()+"\n");
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_READ) >0 ){
                     allOfTerm = allOfTerm + "可讀、";
                 }
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_WRITE) >0 ){
                     allOfTerm = allOfTerm + "可寫、";
-                    if(i == 0){
+                    /*if(i == 0){
                         mGattCharacteristicWrite = gattCharacteristic;
-                    }
+                    }*/
                 }
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_BROADCAST) >0 ){
                     allOfTerm = allOfTerm + "可廣播、";
@@ -253,14 +276,56 @@ public class MainActivity extends AppCompatActivity {
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) >0 ){
                     allOfTerm = allOfTerm + "具備通知屬性\n";
                 }
-            } i++;
+                currentCharaData.put("text", allOfTerm);
+                gattCharacteristicGroupData.add(currentCharaData);
+            }i++;
+            mGattCharacteristics.add(gattCharas);
+            gattCharacteristicData.add(gattCharacteristicGroupData);
         }
-        mTxtViewB.setText(allOfTerm);
+        SimpleExpandableListAdapter gattServiceAdapter = new SimpleExpandableListAdapter(
+                this,
+                gattServiceData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[] {"title", "uuid"},
+                new int[] { android.R.id.text1, android.R.id.text2 },
+                gattCharacteristicData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[] {"uuid", "text"},
+                new int[] { android.R.id.text1, android.R.id.text2 }
+        );
+        mExpandableListView_gatt_services.setAdapter(gattServiceAdapter);
+        mExpandableListView_gatt_services.setOnChildClickListener(servicesListClickListner);
     }
 
-    public void stopScan(){
-        mBluetoothAdapter.stopLeScan(mleScanCallback);
-    }
+    private final ExpandableListView.OnChildClickListener servicesListClickListner =
+            new ExpandableListView.OnChildClickListener() {
+        @Override
+        public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                                    int childPosition, long id) {
+            if (mGattCharacteristics != null) {
+                final BluetoothGattCharacteristic characteristic =
+                        mGattCharacteristics.get(groupPosition).get(childPosition);
+                final int charaProp = characteristic.getProperties();
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                    // If there is an active notification on a characteristic, clear
+                    // it first so it doesn't update the data field on the user interface.
+                    if (mNotifyCharacteristic != null) {
+                        mBluetoothLeService.onSetCharacteristicNotification(
+                                mNotifyCharacteristic, false);
+                        mNotifyCharacteristic = null;
+                    }
+                    mBluetoothLeService.onCharacteristicRead(characteristic);
+                }
+                if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                    mNotifyCharacteristic = characteristic;
+                    mBluetoothLeService.onSetCharacteristicNotification(
+                            characteristic, true);
+                }
+                return true;
+            }
+            return false;
+        }
+    };
 
     private void scanLeDevice(final boolean enable) {
         if (enable) {
