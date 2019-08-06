@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,12 +40,16 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeService mBluetoothLeService;
+    private BluetoothGattService mGattService;
+    private BluetoothGattCharacteristic mGattCharacteristicRead, mGattCharacteristicWrite,
+                                        mGattCharacteristicNotify;
 
+    private ExpandableListView mExpandableListView_gatt_services;
     private Button mBtn_on, mBtn_off, mBtn_stopService;
     private TextView mTxtViewN, mTxtViewB;
     private RecyclerView mRecyclerView;
     private Handler mHandler;
-    private boolean mScanning;
+    public static boolean mScanning; public boolean maa = false;
     private String mBLE_DeviceName, mBLE_DeviceAddress;
 
     public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
@@ -92,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             mBLE_DeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
             mBLE_DeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
-            mTxtViewN.setText(mBLE_DeviceName + "\n" + mBLE_DeviceAddress);
+            mTxtViewN.setText(mBLE_DeviceName + "\n" + mBLE_DeviceAddress + "Data: ");
             if(mBluetoothLeService == null){
                 leDeviceOnSelect();
             }
@@ -141,10 +146,18 @@ public class MainActivity extends AppCompatActivity {
 
         mTxtViewN = (TextView) findViewById(R.id.txtViewN);
         mTxtViewB = (TextView) findViewById(R.id.txtViewB);
+        mTxtViewB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //mBluetoothLeService.
+            }
+        });
 
         mBtn_on.setOnClickListener(Btn_onOnClick);
         mBtn_off.setOnClickListener(Btn_offOnClick);
         mBtn_stopService.setOnClickListener(Btn_stopServiceOnClick);
+
+        mExpandableListView_gatt_services = (ExpandableListView) findViewById(R.id.expandableListView_gatt_services);
     }
 
     private View.OnClickListener Btn_onOnClick = new View.OnClickListener() {
@@ -166,7 +179,8 @@ public class MainActivity extends AppCompatActivity {
             mBluetoothAdapter.disable();
             while(!mBluetoothAdapter.isEnabled()){}
             Toast.makeText(MainActivity.this, "確定已關閉藍牙服務", Toast.LENGTH_LONG).show();
-            scanLeDevice(false);
+            mTxtViewN.setText("尚未連接");
+            mTxtViewB.setText("停止服務");
             mRecyclerView.setAdapter(null); //@Nullable
         }
     };
@@ -177,17 +191,12 @@ public class MainActivity extends AppCompatActivity {
                 mBluetoothLeService = null;
                 unbindService(mServiceConnection);
                 Toast.makeText(MainActivity.this, "stop service", Toast.LENGTH_SHORT).show();
+                mTxtViewN.setText("尚未連接");
+                mTxtViewB.setText("停止服務");
+                mBluetoothAdapter.stopLeScan(mleScanCallback);
             }
         }
     };
-
-    public void leDeviceOnSelect(){
-        mBluetoothLeService = null;
-        Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
-        bindService(it, mServiceConnection, BIND_AUTO_CREATE);
-
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -205,24 +214,58 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void leDeviceOnSelect(){
+        mBluetoothLeService = null;
+        Intent it = new Intent(MainActivity.this , BluetoothLeService.class);
+        bindService(it, mServiceConnection, BIND_AUTO_CREATE);
+
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+    }
+
     private void showDeviceService(){
-        List<BluetoothGattService> mGattService = mBluetoothLeService.gattServices();
+        List<BluetoothGattService> gattServices = mBluetoothLeService.gattServices();
         String allOfTerm = "";
         int i=0;
-        for(BluetoothGattService gattService : mGattService){
-            allOfTerm = allOfTerm + "Unknow Service :"+(i++)+"\n";
-
-
-            List<BluetoothGattCharacteristic> mGattCharacteristics = gattService.getCharacteristics();
-            for(BluetoothGattCharacteristic gattCharacteristic : mGattCharacteristics){
-                allOfTerm = allOfTerm + (gattCharacteristic.getUuid().toString()+"\n");
+        for(BluetoothGattService gattService : gattServices){
+            allOfTerm = allOfTerm + "Unknow Service :"+(i)+"\n";
+            if(i == 0){
+                 mGattService = gattService;
             }
+
+            List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+            for(BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics){
+                int charaProp = gattCharacteristic.getProperties();
+
+                //allOfTerm = allOfTerm + SampleGattAttributes.lookup(gattCharacteristic.getUuid().toString(), "Test")+" ";
+                allOfTerm = allOfTerm + (gattCharacteristic.getUuid().toString()+"\n");
+                if( (charaProp | BluetoothGattCharacteristic.PROPERTY_READ) >0 ){
+                    allOfTerm = allOfTerm + "可讀、";
+                }
+                if( (charaProp | BluetoothGattCharacteristic.PROPERTY_WRITE) >0 ){
+                    allOfTerm = allOfTerm + "可寫、";
+                    if(i == 0){
+                        mGattCharacteristicWrite = gattCharacteristic;
+                    }
+                }
+                if( (charaProp | BluetoothGattCharacteristic.PROPERTY_BROADCAST) >0 ){
+                    allOfTerm = allOfTerm + "可廣播、";
+                }
+                if( (charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) >0 ){
+                    allOfTerm = allOfTerm + "具備通知屬性\n";
+                }
+            } i++;
         }
         mTxtViewB.setText(allOfTerm);
     }
 
+    public void stopScan(){
+        mBluetoothAdapter.stopLeScan(mleScanCallback);
+    }
+
     private void scanLeDevice(final boolean enable) {
         if (enable) {
+            mLeDeviceListAdapter.clear();
+
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override

@@ -43,7 +43,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="TextView"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
+
+    <ExpandableListView
+        android:id="@+id/expandableListView_gatt_services"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

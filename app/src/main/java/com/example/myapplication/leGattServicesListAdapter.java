@@ -1,13 +1,10 @@
 package com.example.myapplication;
 
-
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,23 +14,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapter.ViewHolder>{
+public class leGattServicesListAdapter extends RecyclerView.Adapter<leGattServicesListAdapter.ViewHolder>{
 
     private List<BluetoothDevice> mLeDeviceList;
 
 
-    public leDeviceListAdapter(){
+    public leGattServicesListAdapter(){
         super();
         mLeDeviceList = new ArrayList<BluetoothDevice>();
+    }
+
+    public leGattServicesListAdapter(List<BluetoothDevice> mLeDeviceList){
+        this.mLeDeviceList = mLeDeviceList;
     }
 
     public void addDevice(BluetoothDevice device){
         if(!mLeDeviceList.contains(device))
             mLeDeviceList.add(device);
-    }
-
-    public void clear(){
-        mLeDeviceList.clear();
     }
 
     @Override
@@ -77,18 +74,14 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
         @Override
         public void onClick(View v) {
             /**按下後執行的程式碼*/
-
             if(mLeDeviceList.size() != 0)
-            {Toast.makeText(v.getContext(), mLeDeviceList.get(getAdapterPosition()).getName()+"\n"+
-                    mLeDeviceList.get(getAdapterPosition()).getAddress(), Toast.LENGTH_LONG).show();}
-            if(mLeDeviceList.get(getAdapterPosition()).getName().equals("HMSoft") ||
-                    mLeDeviceList.get(getAdapterPosition()).getName().equals("HM171001")){
+            {
+                Toast.makeText(v.getContext(), mLeDeviceList.get(getAdapterPosition()).getName()+"\n"+
+                        mLeDeviceList.get(getAdapterPosition()).getAddress(), Toast.LENGTH_LONG).show();}
+            if(mLeDeviceList.get(getAdapterPosition()).getName().equals("HMSoft")){
+
                 final BluetoothDevice device = mLeDeviceList.get(getAdapterPosition());
                 if (device == null) return;
-                if (MainActivity.mScanning) {
-
-                    MainActivity.mScanning = false;
-                }
                 Intent it = new Intent(MainActivity.SELECT_BLE_DEVICE);
                 it.putExtra(MainActivity.EXTRAS_DEVICE_NAME, device.getName());
                 it.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());

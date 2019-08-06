@@ -147,7 +147,10 @@ public class BluetoothLeService extends Service {
     }
 
     public void onCharacteristicWrite(BluetoothGattCharacteristic characteristic){
-
+        if(mBluetoothAdapter == null || mBluetoothGatt == null){
+            return;
+        }
+        mBluetoothGatt.writeCharacteristic(characteristic);
     }
 
     // Various callback methods defined by the BLE API.
