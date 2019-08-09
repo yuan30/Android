@@ -36,9 +36,9 @@ public class BluetoothLeService extends Service {
     private static final int STATE_CONNECTED = 2;
 
     public final static String ACTION_GATT_CONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+            "connected";
     public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+            "disconnected";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
             "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
@@ -79,8 +79,9 @@ public class BluetoothLeService extends Service {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
-        mBluetoothGatt.disconnect();
-        close();
+        disconnect();//斷掉以建立和嘗試連接的裝置後，在回撥內有關閉客戶端
+                    //如果在這同時做，會發生沒進回撥的情況
+        Log.v(TAG, "Unbind");
         return super.onUnbind(intent);
     }
 
@@ -114,7 +115,7 @@ public class BluetoothLeService extends Service {
         if (mBLE_DeviceAddress != null && address.equals(mBLE_DeviceAddress)
                 && mBluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
+            if (mBluetoothGatt.connect()) { //再跟曾經連過的BLE重新連線
                 mConnectionState = STATE_CONNECTING;
                 return true;
             } else {
@@ -145,6 +146,14 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt = null;
     }
 
+    public void disconnect(){
+        if(mBluetoothGatt == null){
+            return;
+        }
+
+        mBluetoothGatt.disconnect();
+    }
+
     public void onCharacteristicRead(BluetoothGattCharacteristic characteristic){
         if(mBluetoothAdapter == null || mBluetoothGatt == null){
             return;
@@ -169,12 +178,13 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
 
-        /*if (SampleGattAttributes.BLE_DEVICE_WRITE.equals(characteristic.getUuid())) {
+        if (SampleGattAttributes.BLE_DEVICE_NOTIFY.equals(characteristic.getUuid().toString())) {
+            Log.w(TAG, "BluetoothAdapter set config");
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
-        }*/
+        }
     }
 
     // Various callback methods defined by the BLE API.
@@ -182,22 +192,25 @@ public class BluetoothLeService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status,
                                             int newState) { //notification對應
-            //String intentAction;
-            if(status == BluetoothGatt.GATT_SUCCESS) {
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    //intentAction = ACTION_GATT_CONNECTED;
-                    mConnectionState = STATE_CONNECTED;
-                    //broadcastUpdate(intentAction); //為了在畫面上顯示連線
-                    Log.i(TAG, "Connected to GATT server.");
-                    //Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-                    mBluetoothGatt.discoverServices();
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    //intentAction = ACTION_GATT_DISCONNECTED;
-                    mConnectionState = STATE_DISCONNECTED;
-                    Log.i(TAG, "Disconnected from GATT server.");
-                    gatt.close();//斷開連線也釋放
-                    //broadcastUpdate(intentAction); //為了在畫面上顯示斷開
-                }
+            String intentAction;
+            if(!(status == BluetoothGatt.GATT_SUCCESS)) {
+                Log.v(TAG, "Can't connect to GATT server.");
+                //return;
+            }
+
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                intentAction = ACTION_GATT_CONNECTED;
+                mConnectionState = STATE_CONNECTED;
+                broadcastUpdate(intentAction); //為了在畫面上顯示連線
+                Log.v(TAG, "Connected to GATT server.");
+                //Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                mBluetoothGatt.discoverServices();
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                intentAction = ACTION_GATT_DISCONNECTED;
+                mConnectionState = STATE_DISCONNECTED;
+                Log.v(TAG, "Disconnected from GATT server.");
+                close();//斷開連線也釋放
+                broadcastUpdate(intentAction); //為了在畫面上顯示斷開
             }
         }
 
@@ -232,7 +245,7 @@ public class BluetoothLeService extends Service {
             Log.v(TAG, "on Write " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_WRITE_DATA, characteristic);
-                Log.v(TAG, "on Write " + characteristic.getValue().toString());
+                Log.v(TAG, "on Write " + characteristic.getStringValue(0));
             }
         }
 
@@ -241,7 +254,6 @@ public class BluetoothLeService extends Service {
             super.onCharacteristicChanged(gatt, characteristic);
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             Log.v(TAG, "on Changed " + characteristic.getUuid().toString());
-            mBluetoothGatt.setCharacteristicNotification(characteristic, false);
         }
     };
 
