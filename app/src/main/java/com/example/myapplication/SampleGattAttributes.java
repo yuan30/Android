@@ -27,6 +27,8 @@ public class SampleGattAttributes {
     public static String BLE_DEVICE_WRITE = "00002a01-0000-1000-8000-00805f9b34fb";
     public static String BLE_DEVICE_BROADCAST = "00002a04-0000-1000-8000-00805f9b34fb";
     public static String BLE_DEVICE_OTHER = "00002aa6-0000-1000-8000-00805f9b34fb";
+    public static String BLE_DEVICE_NOTIFY = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
     static {
         // Sample Services.

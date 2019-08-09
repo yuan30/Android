@@ -85,10 +85,7 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
                     mLeDeviceList.get(getAdapterPosition()).getName().equals("HM171001")){
                 final BluetoothDevice device = mLeDeviceList.get(getAdapterPosition());
                 if (device == null) return;
-                if (MainActivity.mScanning) {
 
-                    MainActivity.mScanning = false;
-                }
                 Intent it = new Intent(MainActivity.SELECT_BLE_DEVICE);
                 it.putExtra(MainActivity.EXTRAS_DEVICE_NAME, device.getName());
                 it.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());

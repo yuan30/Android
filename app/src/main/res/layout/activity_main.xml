@@ -24,6 +24,14 @@
         android:textSize="20sp" />
 
     <Button
+        android:id="@+id/Btn_write"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/Btn_write"
+        android:textAllCaps="false"
+        android:textSize="20sp" />
+
+    <Button
         android:id="@+id/Btn_stopService"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,12 +51,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="TextView"
-        android:textSize="16sp" />
+        android:textSize="20sp" />
 
     <ExpandableListView
         android:id="@+id/expandableListView_gatt_services"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:visibility="visible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
