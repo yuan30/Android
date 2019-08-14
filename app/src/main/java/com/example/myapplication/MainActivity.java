@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTxtViewN, mTxtViewS, mTxtViewD;
     private RecyclerView mRecyclerView;
     private Handler mHandler;
-    public boolean mScanning;
+    public boolean mScanning = false;
     private String mBLE_DeviceName, mBLE_DeviceAddress;
 
     public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
@@ -189,7 +189,10 @@ public class MainActivity extends AppCompatActivity {
                 mRecyclerView.setAdapter(mLeDeviceListAdapter);
             }
             while(!mBluetoothAdapter.isEnabled()){}
-            scanLeDevice(true);
+            if(mScanning == false)
+                scanLeDevice(true);
+            else
+                scanLeDevice(false);
         }
     };
 
@@ -220,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             if(mGattCharacteristicNotify != null) {
-                mGattCharacteristicNotify.setValue(new byte[]{0x41, 0x54});
+                mGattCharacteristicNotify.setValue(new byte[]{0x54, 0x45, 0x53, 0x54});
                 mGattCharacteristicNotify.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                 mBluetoothLeService.onCharacteristicWrite(mGattCharacteristicNotify);
             }
@@ -320,9 +323,11 @@ public class MainActivity extends AppCompatActivity {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mScanning = false;
-                    mBluetoothAdapter.stopLeScan(mleScanCallback);
-                    Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
+                    if(mScanning == true) {
+                        mScanning = false;
+                        mBluetoothAdapter.stopLeScan(mleScanCallback);
+                        Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
+                    }
                 }
             }, SCAN_PERIOD);
             Toast.makeText(MainActivity.this, "Start Scan", Toast.LENGTH_LONG).show();
@@ -333,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mleScanCallback);
-            Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "Stop Scan 20", Toast.LENGTH_LONG).show();
         }
     }
 
