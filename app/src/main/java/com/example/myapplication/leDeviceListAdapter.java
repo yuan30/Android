@@ -46,13 +46,18 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item1, parent, false);
         ViewHolder holder = new ViewHolder(v);
+
         return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if(mLeDeviceList.size() != 0) {
-            holder.mTxtView.setText(mLeDeviceList.get(position).getName());
+            if(mLeDeviceList.get(position).getName() == null)
+                holder.mTxtView.setText("Unknown Device");
+            else
+                holder.mTxtView.setText(mLeDeviceList.get(position).getName());
+
             holder.mTxtView2.setText(mLeDeviceList.get(position).getAddress());
         }
     }
@@ -78,14 +83,13 @@ public class leDeviceListAdapter extends RecyclerView.Adapter<leDeviceListAdapte
         public void onClick(View v) {
             /**按下後執行的程式碼*/
 
-            if(mLeDeviceList.size() != 0)
+            /*if(mLeDeviceList.size() != 0)
             {Toast.makeText(v.getContext(), mLeDeviceList.get(getAdapterPosition()).getName()+"\n"+
-                    mLeDeviceList.get(getAdapterPosition()).getAddress(), Toast.LENGTH_LONG).show();}
+                    mLeDeviceList.get(getAdapterPosition()).getAddress(), Toast.LENGTH_LONG).show();}*/
             if(mLeDeviceList.get(getAdapterPosition()).getName().equals("HMSoft") ||
                     mLeDeviceList.get(getAdapterPosition()).getName().equals("HM171001")){
                 final BluetoothDevice device = mLeDeviceList.get(getAdapterPosition());
                 if (device == null) return;
-
                 Intent it = new Intent(MainActivity.SELECT_BLE_DEVICE);
                 it.putExtra(MainActivity.EXTRAS_DEVICE_NAME, device.getName());
                 it.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());

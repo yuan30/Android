@@ -1,9 +1,11 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -36,48 +38,39 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private leDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeService mBluetoothLeService;
-    //private BluetoothGattService mGattService;
     private BluetoothGattCharacteristic mGattCharacteristicRead, mGattCharacteristicWrite,
-                                        mGattCharacteristicNotify, mGattCharacteristicBroadcast,mGattCharacteristicOther;
+            mGattCharacteristicNotify, mGattCharacteristicBroadcast,mGattCharacteristicOther;
 
-    private Button mBtn_on, mBtn_off, mBtn_stopService, mBtn_write;
+    private Button mBtn_on, mBtn_off, mBtn_stopService, mBtn_write, mBtn_write2;
     private TextView mTxtViewN, mTxtViewS, mTxtViewD;
-    private RecyclerView mRecyclerView;
-    private Handler mHandler;
-    public boolean mScanning = false;
-    private String mBLE_DeviceName, mBLE_DeviceAddress;
+
+    private String mBLE_DeviceName = null, mBLE_DeviceAddress;
 
     public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    private static final long SCAN_PERIOD = 3000;
+
     private static final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
-    static int ic = 0;
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            //Toast.makeText(MainActivity.this, "Service connected", Toast.LENGTH_LONG).show();
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) iBinder).getService();
             if (!mBluetoothLeService.initialize()) {
-                //Log.d(TAG, "Unable to initialize Bluetooth");
                 finish();
             }
             if(mBluetoothLeService.connect(mBLE_DeviceAddress) )
                 Toast.makeText(MainActivity.this, "Device connect", Toast.LENGTH_LONG).show();
-
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-
-        }
+        public void onServiceDisconnected(ComponentName componentName) {}
     };
     private void currentState(String str){
-        String str1 ="state :"+ str;
+        String str1 ="State :"+ str;
         mTxtViewS.setText(str1);
         if(str == "disconnected"){
             mTxtViewD.setText("Data :");
@@ -124,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent it = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivityForResult(it, 0);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {//如果 API level 是大于等于 23(Android 6.0) 时
             //判断是否具有权限
@@ -149,34 +140,33 @@ public class MainActivity extends AppCompatActivity {
         mBluetoothAdapter = mBluetoothManager.getAdapter();
         mBluetoothLeService = null;
 
-        mHandler = new Handler();
 
-        mBtn_on = (Button) findViewById(R.id.Btn_on);
-        mBtn_off = (Button) findViewById(R.id.Btn_off);
-        mBtn_stopService = (Button) findViewById(R.id.Btn_stopService);
-        mBtn_write = (Button) findViewById(R.id.Btn_write);
 
-        mLeDeviceListAdapter = new leDeviceListAdapter();
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mBtn_on = findViewById(R.id.Btn_on);
+        mBtn_off = findViewById(R.id.Btn_off);
+        mBtn_stopService = findViewById(R.id.Btn_stopService);
+        mBtn_write = findViewById(R.id.Btn_write);
+        mBtn_write2 = findViewById(R.id.Btn_write2);
+        mBtn_write2.setEnabled(false);
 
-        mTxtViewN = (TextView) findViewById(R.id.txtViewN);
-        mTxtViewS = (TextView) findViewById(R.id.txtViewS);
-        mTxtViewD = (TextView) findViewById(R.id.txtViewD);
+        mTxtViewN = findViewById(R.id.txtViewN);
+        mTxtViewS = findViewById(R.id.txtViewS);
+        mTxtViewD = findViewById(R.id.txtViewD);
 
         mBtn_on.setOnClickListener(Btn_onOnClick);
         mBtn_off.setOnClickListener(Btn_offOnClick);
         mBtn_stopService.setOnClickListener(Btn_stopServiceOnClick);
         mBtn_write.setOnClickListener(Btn_writeOnClick);
+        mBtn_write2.setOnClickListener(Btn_write2OnClick);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(mBluetoothAdapter.isEnabled()) {
-            scanLeDevice(true);
-            mRecyclerView.setAdapter(mLeDeviceListAdapter);
+
+        if(mBLE_DeviceName != null){
+            mBtn_write2.setEnabled(true);
         }
     }
 
@@ -186,28 +176,25 @@ public class MainActivity extends AppCompatActivity {
             if(!mBluetoothAdapter.isEnabled()){
                 Intent it = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(it, 0);
-                mRecyclerView.setAdapter(mLeDeviceListAdapter);
+                //mRecyclerView.setAdapter(mLeDeviceListAdapter);
             }
             while(!mBluetoothAdapter.isEnabled()){}
-            if(mScanning == false)
-                scanLeDevice(true);
-            else
-                scanLeDevice(false);
+            Intent it = new Intent(MainActivity.this , leDeviceScan.class);
+            startActivity(it);
         }
     };
 
     private View.OnClickListener Btn_offOnClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            mBluetoothAdapter.stopLeScan(mleScanCallback);
+            //mBluetoothAdapter.stopLeScan(mleScanCallback);
 
             while(!mBluetoothAdapter.disable()){}
             Toast.makeText(MainActivity.this, "確定已關閉藍牙服務", Toast.LENGTH_LONG).show();
 
-            mRecyclerView.setAdapter(null); //@Nullable
-
         }
     };
+
     private View.OnClickListener Btn_stopServiceOnClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -215,15 +202,28 @@ public class MainActivity extends AppCompatActivity {
                 mBluetoothLeService = null;
                 unbindService(mServiceConnection);  //unbind裡有呼叫gatt.disconnect，再回回撥去
                 Toast.makeText(MainActivity.this, "stop service", Toast.LENGTH_SHORT).show();
-                mBluetoothAdapter.stopLeScan(mleScanCallback);
+                //mBluetoothAdapter.stopLeScan(mleScanCallback);
+                mBtn_write2.setEnabled(false); //把對戰模式按鈕暗掉
             }
         }
     };
+
     private View.OnClickListener Btn_writeOnClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if(mGattCharacteristicNotify != null) {
-                mGattCharacteristicNotify.setValue(new byte[]{0x54, 0x45, 0x53, 0x54});
+                mGattCharacteristicNotify.setValue(new byte[]{0x1});
+                mGattCharacteristicNotify.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+                mBluetoothLeService.onCharacteristicWrite(mGattCharacteristicNotify);
+            }
+        }
+    };
+
+    private View.OnClickListener Btn_write2OnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(mGattCharacteristicNotify != null) {
+                mGattCharacteristicNotify.setValue(new byte[]{0x2});
                 mGattCharacteristicNotify.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                 mBluetoothLeService.onCharacteristicWrite(mGattCharacteristicNotify);
             }
@@ -256,33 +256,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void showDeviceService(){
         List<BluetoothGattService> gattServices = mBluetoothLeService.gattServices();
-        String allOfTerm = "";
         int i=0;
 
-
-
-
         for(BluetoothGattService gattService : gattServices){
-            //allOfTerm = allOfTerm + "Unknow Service :"+(i)+"\n";
+
             Map<String,Object> groupMap = new HashMap<String,Object>();
             groupMap.put("title", "Unknown Service :"+ i);
             groupMap.put("uuid", gattService.getUuid().toString());
 
-
-
-
             List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
 
             for(BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics){
-                allOfTerm = "";
+
                 int charaProp = gattCharacteristic.getProperties();
-                //gattCharas.add(gattCharacteristic);
-                //HashMap<String, Object> currentCharaData = new HashMap<String, Object>();
-                //currentCharaData.put("title", SampleGattAttributes.lookup(gattCharacteristic.getUuid().toString(), "Test"));
-                //currentCharaData.put("uuid", gattCharacteristic.getUuid().toString());
 
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_READ) >0 ){
-                    allOfTerm = allOfTerm + "可讀、";
+
                     if(gattCharacteristic.getUuid().toString().equals(SampleGattAttributes.BLE_DEVICE_READ)){
                         mGattCharacteristicRead = gattCharacteristic;
                     }if(gattCharacteristic.getUuid().toString().equals(SampleGattAttributes.BLE_DEVICE_WRITE)){
@@ -294,67 +283,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_WRITE) >0 ){
-                    allOfTerm = allOfTerm + "可寫、";
                     if(i==2){
                         mGattCharacteristicNotify = gattCharacteristic;
-                        mBtn_write.setText(gattCharacteristic.getUuid().toString());
                         mBluetoothLeService.onSetCharacteristicNotification(mGattCharacteristicNotify,
-                                                                            true);
+                                true);
                     }
                 }
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_BROADCAST) >0 ){
-                    allOfTerm = allOfTerm + "可廣播、";
                 }
                 if( (charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) >0 ){
-                    allOfTerm = allOfTerm + "具備通知屬性\n";
                 }
-                //currentCharaData.put("text", allOfTerm);
-                //gattCharacteristicGroupData.add(currentCharaData);
             }i++;
-            //mGattCharacteristics.add(gattCharas);
         }
     }
-
-    private void scanLeDevice(final boolean enable) {
-        if (enable) {
-            mLeDeviceListAdapter.clear();
-
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if(mScanning == true) {
-                        mScanning = false;
-                        mBluetoothAdapter.stopLeScan(mleScanCallback);
-                        Toast.makeText(MainActivity.this, "Stop Scan", Toast.LENGTH_LONG).show();
-                    }
-                }
-            }, SCAN_PERIOD);
-            Toast.makeText(MainActivity.this, "Start Scan", Toast.LENGTH_LONG).show();
-
-            mScanning = true;
-            mBluetoothAdapter.startLeScan(mleScanCallback);
-
-        } else {
-            mScanning = false;
-            mBluetoothAdapter.stopLeScan(mleScanCallback);
-            Toast.makeText(MainActivity.this, "Stop Scan 20", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private final BluetoothAdapter.LeScanCallback mleScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //Toast.makeText(MainActivity.this, "進來CALLBACK啦", Toast.LENGTH_LONG).show();
-                    mLeDeviceListAdapter.addDevice(bluetoothDevice);
-                    mLeDeviceListAdapter.notifyDataSetChanged();    //確保Adapter內的list是同一個
-                }
-            });
-        }
-    };
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();

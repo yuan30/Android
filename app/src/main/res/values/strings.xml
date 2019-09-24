@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">My tree</string>
+    <string name="Btn_write">教學模式</string>
+    <string name="Btn_write2">對戰模式</string>
+    <string name="txtViewS">State :</string>
+    <string name="txtViewD">Data :</string>
+    <string name="txtViewN">Unknown Device</string>
+    <string name="connected">連線</string>
+    <string name="disconnected">斷線</string>
+</resources>
