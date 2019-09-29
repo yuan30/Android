@@ -40,16 +40,16 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_GATT_DISCONNECTED =
             "disconnected";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+            "com.example.bluetooth_30pix.le.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+            "com.example.bluetooth_30pix.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
+            "com.example.bluetooth_30pix.le.EXTRA_DATA";
 
     public final static String ACTION_WRITE_DATA =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+            "com.example.bluetooth_30pix.le.ACTION_DATA_AVAILABLE";
     public final static String WRITE_DATA =
-            "com.example.bluetooth.le.WRITE_DATA";
+            "com.example.bluetooth_30pix.le.WRITE_DATA";
 
     /*public final static UUID UUID_HEART_RATE_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);*/

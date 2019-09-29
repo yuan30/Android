@@ -12,21 +12,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/txtViewN"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/txtViewS"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/txtViewS"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/txtViewD"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/txtViewD"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/Btn_on"
@@ -35,7 +38,8 @@
         android:layout_margin="10dp"
         android:text="掃描藍牙裝置"
         android:textAllCaps="false"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/Btn_off"
@@ -44,14 +48,15 @@
         android:layout_margin="10dp"
         android:text="Bluetooth_off"
         android:textAllCaps="false"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/Btn_write"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="@string/Btn_write"
+        android:background="@drawable/teach"
         android:textAllCaps="false"
         android:textSize="20sp" />
 
@@ -59,6 +64,7 @@
         android:id="@+id/Btn_write2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_margin="10dp"
         android:text="@string/Btn_write2"
         android:textAllCaps="false"
@@ -71,7 +77,8 @@
         android:layout_margin="10dp"
         android:text="StopService"
         android:textAllCaps="false"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <ExpandableListView
         android:id="@+id/expandableListView_gatt_services"

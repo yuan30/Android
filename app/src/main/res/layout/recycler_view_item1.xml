@@ -14,7 +14,7 @@
         android:layout_gravity="center_vertical"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
-        app:srcCompat="@drawable/bluetooth" />
+        app:srcCompat="@drawable/bluetooth_30pix" />
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -1,17 +1,12 @@
 package com.example.myapplication;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
@@ -24,8 +19,9 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -46,14 +42,15 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mBtn_on, mBtn_off, mBtn_stopService, mBtn_write, mBtn_write2;
     private TextView mTxtViewN, mTxtViewS, mTxtViewD;
+    private MenuItem mMenuItem_bluetooth; //for action Bar
 
+    private Boolean mIsPlaying = false;
     private String mBLE_DeviceName = null, mBLE_DeviceAddress;
-
     public static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-
     private static final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
+    private static final int MENU_BLUETOOTH = Menu.FIRST;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -62,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
             if (!mBluetoothLeService.initialize()) {
                 finish();
             }
-            if(mBluetoothLeService.connect(mBLE_DeviceAddress) )
+            if(mBluetoothLeService.connect(mBLE_DeviceAddress) ) {
                 Toast.makeText(MainActivity.this, "Device connect", Toast.LENGTH_LONG).show();
+                mMenuItem_bluetooth.setIcon(R.drawable.bluetooth_30pix);
+            }
         }
 
         @Override
@@ -74,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         mTxtViewS.setText(str1);
         if(str == "disconnected"){
             mTxtViewD.setText("Data :");
+            mMenuItem_bluetooth.setIcon(R.drawable.bluetooth_off_30pix);
             mBtn_stopService.callOnClick();
         }
     }
@@ -106,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
             mBLE_DeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
             mTxtViewN.setText(mBLE_DeviceName + "\n" + mBLE_DeviceAddress);
+            if(mBLE_DeviceName != null){ //原本放onResume，後來想想應該是先進那才進這，但進這才有值
+                mBtn_write2.setEnabled(true);
+            }
             if(mBluetoothLeService == null){
                 leDeviceOnSelect();
             }
@@ -164,10 +167,64 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        if(mBLE_DeviceName != null){
-            mBtn_write2.setEnabled(true);
+        if(mIsPlaying){
+            registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+            mIsPlaying = false;
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mBluetoothLeService != null)
+            unregisterReceiver(mGattUpdateReceiver); //要確定服務有建起來後，才會因為遊玩才取消註冊
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mBluetoothDeviceSelectReceiver);//保險用著
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        //getMenuInflater().inflate(R.menu.menu_main, menu);//使用靜態建立的menu_main_xml
+
+        menu.add(0, MENU_BLUETOOTH, 0, "");
+        mMenuItem_bluetooth = menu.getItem(0); //menu.findItem(0);
+        mMenuItem_bluetooth.setIcon(R.drawable.bluetooth_off_30pix);
+        mMenuItem_bluetooth.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /*private void Delay(){
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMenuItem_bluetooth.setIcon(R.drawable.bluetooth_on_02);
+            }
+        }, 8000);
+    }*/
+    //就算沒在onCreateOptionsMenu實作別，變成actionItem也可以進來這
+    //不知484沒設actionLayout或actionViewClass，like Region and Search
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case MENU_BLUETOOTH:
+                //Delay();
+                mMenuItem_bluetooth.setIcon(R.drawable.bluetooth_30pix);
+                if(mBLE_DeviceName != null)
+                    Toast.makeText(MainActivity.this, "已連上"+mBLE_DeviceName
+                            , Toast.LENGTH_LONG).show();
+
+                mBtn_on.callOnClick();
+                return true;
+            case android.R.id.home:
+                Toast.makeText(this, "nothing", Toast.LENGTH_SHORT).show();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private View.OnClickListener Btn_onOnClick = new View.OnClickListener() {
@@ -204,6 +261,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "stop service", Toast.LENGTH_SHORT).show();
                 //mBluetoothAdapter.stopLeScan(mleScanCallback);
                 mBtn_write2.setEnabled(false); //把對戰模式按鈕暗掉
+                mBLE_DeviceName = null;
+                mBLE_DeviceAddress = null;
             }
         }
     };
@@ -215,7 +274,9 @@ public class MainActivity extends AppCompatActivity {
                 mGattCharacteristicNotify.setValue(new byte[]{0x1});
                 mGattCharacteristicNotify.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                 mBluetoothLeService.onCharacteristicWrite(mGattCharacteristicNotify);
-            }
+            }   mIsPlaying = true;//進到教學或對戰，為了gatt的廣播接收器
+            Intent it = new Intent(MainActivity.this , ModeTeaching.class);
+            startActivity(it);
         }
     };
 
@@ -226,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
                 mGattCharacteristicNotify.setValue(new byte[]{0x2});
                 mGattCharacteristicNotify.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                 mBluetoothLeService.onCharacteristicWrite(mGattCharacteristicNotify);
-            }
+            }   mIsPlaying = true;//進到教學或對戰，為了gatt的廣播接收器
         }
     };
 

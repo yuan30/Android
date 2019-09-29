@@ -33,6 +33,8 @@
         </activity>
 
         <activity android:name=".leDeviceScan"/>
+        <activity android:name=".ModeTeaching"></activity>
+        <activity android:name=".TeachingBoard"></activity>
     </application>
 
 </manifest>
