@@ -1,11 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/Btn_on"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="掃描藍牙裝置"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/Btn_off"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="Bluetooth_off"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/Btn_write"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="76dp"
+        android:background="@drawable/teach_300x97"
+        android:textAllCaps="false"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/Btn_write2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="@string/Btn_write2"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/Btn_stopService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="StopService"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        android:visibility="gone" />
+
+    <ExpandableListView
+        android:id="@+id/expandableListView_gatt_services"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Btn_write"
+        android:layout_alignParentEnd="false"
+        app:srcCompat="@drawable/teach"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/txtViewN"
@@ -31,59 +110,4 @@
         android:textSize="20sp"
         android:visibility="gone" />
 
-    <Button
-        android:id="@+id/Btn_on"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="掃描藍牙裝置"
-        android:textAllCaps="false"
-        android:textSize="20sp"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/Btn_off"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Bluetooth_off"
-        android:textAllCaps="false"
-        android:textSize="20sp"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/Btn_write"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:background="@drawable/teach"
-        android:textAllCaps="false"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/Btn_write2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="10dp"
-        android:text="@string/Btn_write2"
-        android:textAllCaps="false"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/Btn_stopService"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="StopService"
-        android:textAllCaps="false"
-        android:textSize="20sp"
-        android:visibility="gone" />
-
-    <ExpandableListView
-        android:id="@+id/expandableListView_gatt_services"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-</LinearLayout>
+</RelativeLayout>

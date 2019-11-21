@@ -269,8 +269,10 @@ public class BluetoothLeService extends Service {
         if (data != null && data.length > 0) {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
             for(byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
-            intent.putExtra(EXTRA_DATA, "\""+ new String(data) +"\""+ "\nHEX :" +stringBuilder.toString());
+                stringBuilder.append(String.format("%02X", byteChar)); //02X後有空白有差
+            //intent.putExtra(EXTRA_DATA, "\""+ new String(data) +"\""+ "\nHEX :" +stringBuilder.toString());
+            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
+            Log.v(TAG, "on Changed " + stringBuilder.toString());
         }
         sendBroadcast(intent);
     }

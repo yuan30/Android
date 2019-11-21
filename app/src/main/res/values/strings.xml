@@ -1,20 +1,42 @@
 <resources>
-    <string name="app_name">My tree</string>
+    <string name="app_name">木育</string>
     <string name="Btn_write">教學模式</string>
     <string name="Btn_write2">對戰模式</string>
-    <string name="Btn_tree01">tree 01</string>
-    <string name="Btn_tree02">tree 02</string>
-    <string name="Btn_tree03">tree 03</string>
-    <string name="Btn_tree04">tree 04</string>
-    <string name="Btn_tree05">tree 05</string>
-    <string name="Btn_tree06">tree 06</string>
-    <string name="Btn_tree07">tree 07</string>
-    <string name="Btn_tree08">tree 08</string>
-    <string name="Btn_tree09">tree 09</string>
-    <string name="Btn_tree10">tree 10</string>
+    <string-array name="Btn_tree">
+        <item>桃花心木</item>
+        <item>台灣櫸木</item>
+        <item>樟木</item>
+        <item>光蠟樹</item>
+        <item>台灣泡桐</item>
+        <item>烏心石</item>
+        <item>苦楝</item>
+        <item>牛樟</item>
+        <item>黃連木</item>
+        <item>相思樹</item>
+    </string-array>
+    <string name="Btn_tree01">桃花心木</string>
+    <string name="Btn_tree02">台灣櫸木</string>
+    <string name="Btn_tree03">樟木</string>
+    <string name="Btn_tree04">光蠟樹</string>
+    <string name="Btn_tree05">台灣泡桐</string>
+    <string name="Btn_tree06">烏心石</string>
+    <string name="Btn_tree07">苦楝</string>
+    <string name="Btn_tree08">牛樟</string>
+    <string name="Btn_tree09">黃連木</string>
+    <string name="Btn_tree10">相思樹</string>
     <string name="txtViewS">State :</string>
     <string name="txtViewD">Data :</string>
     <string name="txtViewN">Unknown Device</string>
     <string name="connected">連線</string>
     <string name="disconnected">斷線</string>
+    <string name="tree_1">桃花心木，楝科。\n特徵:\n散孔材，木理傾斜具交錯。\n心材呈暗紅褐色。\n材質堅硬，無氣味。\n紋理美麗，用於高檔家具的製造。</string>
+    <string name="tree_2">台灣櫸木，榆科。\n特徵:\n環孔材，木理通直。\n邊材為淡紅色，心材為黃褐色至紅褐色。\n木質線於徑面明顯。\n為台灣闊葉樹五大木之一。冬天時葉子轉紅，點綴於群山中，一點也不輸給「楓紅」。</string>
+    <string name="tree_3">樟木，樟科。\n特徵:\n散孔材，木理交錯。\n邊材為灰白色。\n具氣味、輕軟。\n木質芳香，可以消除異味及抗蟲害。</string>
+    <string name="tree_4">光蠟樹，木犀科。\n特徵:\n材質堅韌優良，散孔材。\n材色為淡黃白色，久了變暗色。\n木質線組織常有鞘狀細胞。</string>
+    <string name="tree_5">台灣泡桐，玄參科。\n特徵:\n薄壁細胞呈翼狀或短連合翼狀。\n木材顏色為灰白色，材質具光澤、輕軟。\n常被做為樂器用材，花大美麗也具有香氣，很適合作園景樹。</string>
+    <string name="tree_6">烏心石，木蘭科。\n特徵:\n散孔材，木理交錯。\n心材為淡綠色。\n薄壁細胞呈輪緣狀排列。\n烏心石的稱呼是因為本種的木材有心材顏色較深、且質地堅硬的特性。烏心石為常綠大喬木，其樹高最高可達20公尺，樹幹直徑亦可達1公尺。由於其有樹冠濃密、生存能力及抗病蟲害能力強的特性，也是一種不錯的庭園樹、行道樹與造林樹種。</string>
+    <string name="tree_7">苦楝，楝科。\n特徵:\n環孔材。\n邊材為黃白色。\n薄壁細胞為圍管狀。\n春天開花，花具香味。\n可使用樹皮驅趕蟲子及治療蚊蟲咬傷、解熱。</string>
+    <string name="tree_8">牛樟，樟科。\n特徵:\n散孔材，木理交錯。\n心材為黃褐色至暗褐色。\n具沙士飲料的甜味。\n木材具有芬香，為建築、傢俱、雕刻用材。富含松油醇，不易腐朽、蟲蛀，材質細緻、紋理交錯。</string>
+    <string name="tree_9">黃連木，漆樹科。\n特徵:\n木理交錯，木肌略粗。\n心材為淺黃褐色，含灰褐色暈條。\n薄壁細胞為圍孔狀。\n枝幹堅硬可以抗風，是優良的行道樹與庭園樹。</string>
+    <string name="tree_10">相思樹，含羞草科。\n特徵:\n散孔材，木理歪斜。\n邊材為淡黃褐色，心材為暗紅褐色。\n薄壁細胞呈周圍狀或翼狀排列。\n花小而多，雄蕊多數。花瓣四瓣，花色金黃聚集呈球狀，像極金色的粉撲。日據時代因相思樹是對重要的薪炭材而被遍植台灣全島。</string>
 </resources>

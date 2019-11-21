@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -26,10 +28,13 @@ public class leDeviceScan extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private Handler mHandler;
 
+    private MenuItem mMenuItem_progressBar;
+    private final int MENU_PROGRESSBAR = Menu.FIRST;
+
     public boolean mScanning = false;
     private static final long SCAN_PERIOD = 3000;
     private static final String SELECT_BLE_DEVICE = "BLE_DEVICE";
-
+    private final static String TAG = leDeviceScan.class.getSimpleName();
     private BroadcastReceiver mBluetoothDeviceSelectReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -74,10 +79,22 @@ public class leDeviceScan extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, MENU_PROGRESSBAR, 0, "重新掃描");
+        mMenuItem_progressBar = menu.getItem(0);
+        mMenuItem_progressBar.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM |
+                MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
+            case MENU_PROGRESSBAR:
+                scanLeDevice(true);
                 return true;
             default: return super.onOptionsItemSelected(item);
         }
@@ -100,7 +117,7 @@ public class leDeviceScan extends AppCompatActivity {
                     if(mScanning == true) {
                         mScanning = false;
                         mBluetoothAdapter.stopLeScan(mleScanCallback);
-                        Toast.makeText(leDeviceScan.this, "Stop Scan", Toast.LENGTH_LONG).show();
+                        //Toast.makeText(leDeviceScan.this, "Stop Scan", Toast.LENGTH_LONG).show();
                         alertDialog.dismiss();
                     }
                 }
